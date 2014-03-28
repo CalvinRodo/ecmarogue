@@ -5,6 +5,7 @@ var gutil = require('gulp-util');
 var livereload = require('gulp-livereload');
 var browserify = require('gulp-browserify');
 var print = require('gulp-print');
+var watch = require('gulp-watch');
 
 var EXPRESS_PORT = 4000;
 var EXPRESS_ROOT = __dirname;
@@ -20,7 +21,7 @@ function startExpress() {
   gutil.log(EXPRESS_ROOT + ' served up on ' + EXPRESS_PORT);
 }
 
-gulp.task('default', ['clean', 'scripts-dev', 'server'], function(){
+gulp.task('default', ['clean', 'copy_resources', 'scripts-dev', 'server', 'watch'], function(){
 });
 
 gulp.task('server', function(){
@@ -28,19 +29,26 @@ gulp.task('server', function(){
 });
 
 gulp.task('clean', function(){
-	gulp.src('public/scripts/*.js', { read: false })
+	return gulp.src('public/scripts/*.js', { read: false })
 		.pipe(clean());
 });
 
 gulp.task('scripts-dev', function(){
-	gulp.src('src/app.js')
-		.pipe(print())
+
+	return gulp.src('src/app.js')
 		.pipe(browserify())
-		.pipe(gulp.dest('public/scripts'));
-	gulp.src('src/rot.js')
-		.pipe(print())
+		.pipe(gulp.dest('public/scripts'))
+		.pipe(livereload());
+
+});
+
+gulp.task('copy_resources', function(){
+	return gulp.src('src/rot.js')
 		.pipe(gulp.dest('public/scripts'));
 });
-gulp.task('watch', function(){
-	gulp.watch('src/*.js', ['scripts-dev']);
+
+gulp.task("watch", function() {
+    watch({glob: "src/**/*.js"}, function() {
+        gulp.start("scripts-dev");
+    });
 });
